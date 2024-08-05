@@ -9,12 +9,16 @@ pub fn dissasemble_chunk(chunk: &Chunk, name: &str) {
     let mut offset = 0;
     while offset < chunk.code.len() {
         offset = dissasemble_instruction(chunk, offset);
-        offset += 1
     }
 }
 
 fn dissasemble_instruction(chunk: &Chunk, offset: usize) -> usize {
     print!("{:04} ", offset);
+    if offset > 0 && chunk.lines.get(offset) == chunk.lines.get(offset - 1) {
+        print!("   | ");
+    } else {
+        print!("{:4} ", chunk.lines.get(offset).unwrap())
+    }
 
     let instruction =
         num::FromPrimitive::from_u8(*chunk.code.get(offset).expect("Offset out of bounds"));

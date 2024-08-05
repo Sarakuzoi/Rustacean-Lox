@@ -12,6 +12,7 @@ pub enum OpCode {
 pub struct Chunk {
     pub code: Vec<u8>, // or u8
     pub constants: ValueArray,
+    pub lines: Vec<usize>,
 }
 
 impl Chunk {
@@ -19,10 +20,12 @@ impl Chunk {
         Chunk {
             code: Vec::new(),
             constants: ValueArray::new(),
+            lines: Vec::new(),
         }
     }
 
-    pub fn write(&mut self, byte: u8) {
+    pub fn write(&mut self, byte: u8, line: usize) {
+        self.lines.push(line);
         self.code.push(byte);
     }
 
