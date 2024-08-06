@@ -14,10 +14,10 @@ pub fn dissasemble_chunk(chunk: &Chunk, name: &str) {
 
 fn dissasemble_instruction(chunk: &Chunk, offset: usize) -> usize {
     print!("{:04} ", offset);
-    if offset > 0 && chunk.lines.get(offset) == chunk.lines.get(offset - 1) {
+    if offset > 0 && chunk.get_line(offset) == chunk.get_line(offset - 1) {
         print!("   | ");
     } else {
-        print!("{:4} ", chunk.lines.get(offset).unwrap())
+        print!("{:4} ", chunk.get_line(offset))
     }
 
     let instruction =
