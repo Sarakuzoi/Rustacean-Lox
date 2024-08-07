@@ -10,6 +10,7 @@ pub enum OpCode {
     OP_RETURN,
 }
 
+#[derive(Clone)]
 pub struct Chunk {
     pub code: Vec<u8>, // (first byte for a new line, new line no.)
     pub constants: ValueArray,
