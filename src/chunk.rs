@@ -6,6 +6,7 @@ use crate::value::{Value, ValueArray};
 #[derive(FromPrimitive, Debug)]
 pub enum OpCode {
     OP_CONSTANT,
+    OP_CONSTANT_LONG,
     OP_RETURN,
 }
 
@@ -32,7 +33,20 @@ impl Chunk {
         }
     }
 
-    pub fn add_constant(&mut self, constant: Value) -> usize {
+    pub fn write_constant(&mut self, value: Value, line: Option<usize>) {
+        let constants_size = self.add_constant(value);
+        if constants_size <= 0xff {
+            self.write(OpCode::OP_CONSTANT as u8, line);
+            self.write(constants_size as u8, None);
+        } else {
+            self.write(OpCode::OP_CONSTANT_LONG as u8, line);
+            self.write(constants_size as u8, None);
+            self.write((constants_size >> 8) as u8, None);
+            self.write((constants_size >> 16) as u8, None);
+        }
+    }
+
+    fn add_constant(&mut self, constant: Value) -> usize {
         self.constants.write(constant);
         self.constants.values.len() - 1
     }

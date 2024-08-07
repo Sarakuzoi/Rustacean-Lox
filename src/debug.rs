@@ -24,6 +24,7 @@ fn dissasemble_instruction(chunk: &Chunk, offset: usize) -> usize {
         num::FromPrimitive::from_u8(*chunk.code.get(offset).expect("Offset out of bounds"));
     match instruction {
         Some(OpCode::OP_CONSTANT) => constant_instruction("OP_CONSTANT", offset, chunk),
+        Some(OpCode::OP_CONSTANT_LONG) => constant_instruction("OP_CONSTANT_LONG", offset, chunk),
         Some(OpCode::OP_RETURN) => simple_instruction("OP_RETURN", offset),
         None => {
             println!("Unknown opcode {:?}", instruction);
@@ -33,12 +34,27 @@ fn dissasemble_instruction(chunk: &Chunk, offset: usize) -> usize {
 }
 
 fn constant_instruction(name: &str, offset: usize, chunk: &Chunk) -> usize {
-    let constant = chunk.code.get(offset + 1).expect("Offset out of bounds");
+    let jmp = match name {
+        "OP_CONSTANT" => 2,      // 1 byte for opcode, 1 byte for index
+        "OP_CONSTANT_LONG" => 4, // 1 byte for opcode, 3 bytes for index
+        _ => unreachable!(),
+    };
 
-    print!("{:-16} {:4} '", name, constant);
-    print_value(chunk.constants.values.get(*constant as usize));
+    let index: usize = match name {
+        "OP_CONSTANT" => (*chunk.code.get(offset + 1).expect("Offset out of bounds")).into(),
+        "OP_CONSTANT_LONG" => {
+            let index = *chunk.code.get(offset + 1).expect("Offset out of bounds") as u32
+                | (*chunk.code.get(offset + 2).expect("Offset out of bounds") as u32) << 8
+                | (*chunk.code.get(offset + 3).expect("Offset out of bounds") as u32) << 16;
+            index.try_into().expect("u32 does not fit into usize")
+        }
+        _ => unreachable!(),
+    };
+
+    print!("{:-16} {:4} '", name, index);
+    print_value(chunk.constants.values.get(index as usize));
     print!("'\n");
-    offset + 2
+    offset + jmp
 }
 
 fn simple_instruction(name: &str, offset: usize) -> usize {
