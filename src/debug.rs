@@ -12,7 +12,7 @@ pub fn dissasemble_chunk(chunk: &Chunk, name: &str) {
     }
 }
 
-fn dissasemble_instruction(chunk: &Chunk, offset: usize) -> usize {
+pub fn dissasemble_instruction(chunk: &Chunk, offset: usize) -> usize {
     print!("{:04} ", offset);
     if offset > 0 && chunk.get_line(offset) == chunk.get_line(offset - 1) {
         print!("   | ");

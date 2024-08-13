@@ -1,5 +1,10 @@
+use std::env;
+
+use lazy_static::lazy_static;
+
 use crate::{
     chunk::{Chunk, OpCode},
+    debug::dissasemble_instruction,
     value::{print_value, Value},
 };
 
@@ -7,6 +12,14 @@ pub struct VM {
     chunk: Chunk,
     // ip: Vec<u8>,
     ip: usize,
+}
+
+// static DEBUG_TRACE_EXECUTION: bool = env::var("DEBUG_TRACE").unwra;
+lazy_static! {
+    static ref DEBUG_TRACE_EXECUTION: bool = env::var("DEBUG_TRACE")
+        .unwrap_or(String::from("false"))
+        .parse()
+        .unwrap_or(false);
 }
 
 #[allow(non_camel_case_types)]
@@ -32,6 +45,9 @@ impl VM {
 
     pub fn run(&mut self) -> InterpretResult {
         loop {
+            if *DEBUG_TRACE_EXECUTION {
+                dissasemble_instruction(&self.chunk, self.ip);
+            }
             let instruction =
                 num::FromPrimitive::from_u8(self.read_byte()).expect("Unknown OpCode");
             match instruction {
