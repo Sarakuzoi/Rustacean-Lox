@@ -10,7 +10,7 @@ fn main() {
 
     chunk.write_constant(1.2, Some(123));
     for _ in 0..300 {
-        chunk.write_constant(1.2, Some(123));
+        chunk.write_constant(1.2, None);
     }
     chunk.write(OpCode::OP_RETURN as u8, None);
     chunk.write(OpCode::OP_RETURN as u8, Some(124));
