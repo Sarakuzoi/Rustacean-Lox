@@ -8,8 +8,6 @@ use crate::{
     value::{print_value, Value},
 };
 
-const STACK_MAX: u32 = 256;
-
 pub struct VM {
     chunk: Chunk,
     ip: usize,
@@ -64,7 +62,11 @@ impl VM {
                 OpCode::OP_CONSTANT | OpCode::OP_CONSTANT_LONG => {
                     let constant = self.read_constant(instruction);
                     self.push(constant.expect("Constant was not read properly"));
-                } // _ => todo!(),
+                }
+                OpCode::OP_ADD => self.binary_op("+"),
+                OpCode::OP_SUBTRACT => self.binary_op("-"),
+                OpCode::OP_MULTIPLY => self.binary_op("*"),
+                OpCode::OP_DIVIDE => self.binary_op("/"),
                 OpCode::OP_NEGATE => {
                     let aux = self.pop();
                     self.push(-aux);
@@ -128,5 +130,17 @@ impl VM {
 
     pub fn pop(&mut self) -> Value {
         self.stack.pop().unwrap()
+    }
+
+    fn binary_op(&mut self, symbol: &str) {
+        let b = self.pop();
+        let a = self.pop();
+        match symbol {
+            "+" => self.push(a + b),
+            "-" => self.push(a - b),
+            "*" => self.push(a * b),
+            "/" => self.push(a / b),
+            _ => unreachable!(),
+        }
     }
 }

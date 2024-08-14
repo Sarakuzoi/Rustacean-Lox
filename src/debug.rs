@@ -25,6 +25,10 @@ pub fn dissasemble_instruction(chunk: &Chunk, offset: usize) -> usize {
     match instruction {
         Some(OpCode::OP_CONSTANT) => constant_instruction("OP_CONSTANT", offset, chunk),
         Some(OpCode::OP_CONSTANT_LONG) => constant_instruction("OP_CONSTANT_LONG", offset, chunk),
+        Some(OpCode::OP_ADD) => simple_instruction("OP_ADD", offset),
+        Some(OpCode::OP_SUBTRACT) => simple_instruction("OP_SUBTRACT", offset),
+        Some(OpCode::OP_MULTIPLY) => simple_instruction("OP_MULTIPLY", offset),
+        Some(OpCode::OP_DIVIDE) => simple_instruction("OP_DIVIDE", offset),
         Some(OpCode::OP_NEGATE) => simple_instruction("OP_NEGATE", offset),
         Some(OpCode::OP_RETURN) => simple_instruction("OP_RETURN", offset),
         None => {
