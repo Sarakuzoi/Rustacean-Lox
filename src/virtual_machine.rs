@@ -8,10 +8,12 @@ use crate::{
     value::{print_value, Value},
 };
 
+const STACK_MAX: u32 = 256;
+
 pub struct VM {
     chunk: Chunk,
-    // ip: Vec<u8>,
     ip: usize,
+    stack: Vec<Option<Value>>,
 }
 
 // static DEBUG_TRACE_EXECUTION: bool = env::var("DEBUG_TRACE").unwra;
@@ -34,6 +36,7 @@ impl VM {
         VM {
             chunk: Chunk::new(),
             ip: 0,
+            stack: Vec::new(),
         }
     }
 
@@ -46,16 +49,26 @@ impl VM {
     pub fn run(&mut self) -> InterpretResult {
         loop {
             if *DEBUG_TRACE_EXECUTION {
+                print!("          ");
+                for slot in self.stack.iter() {
+                    print!("[ ");
+                    print_value(slot.as_ref());
+                    print!(" ]");
+                }
+                println!();
                 dissasemble_instruction(&self.chunk, self.ip);
             }
             let instruction =
                 num::FromPrimitive::from_u8(self.read_byte()).expect("Unknown OpCode");
             match instruction {
-                OpCode::OP_RETURN => return InterpretResult::INTERPRET_OK,
+                OpCode::OP_RETURN => {
+                    print_value(self.pop().as_ref());
+                    println!();
+                    return InterpretResult::INTERPRET_OK;
+                }
                 OpCode::OP_CONSTANT | OpCode::OP_CONSTANT_LONG => {
                     let constant = self.read_constant(instruction);
-                    print_value(constant.as_ref());
-                    println!();
+                    self.push(constant);
                 } // _ => todo!(),
             }
         }
@@ -103,5 +116,13 @@ impl VM {
 
         self.ip += jmp;
         self.chunk.constants.values.get(index).copied()
+    }
+
+    pub fn push(&mut self, value: Option<Value>) {
+        self.stack.push(value);
+    }
+
+    pub fn pop(&mut self) -> Option<Value> {
+        self.stack.pop().unwrap()
     }
 }
