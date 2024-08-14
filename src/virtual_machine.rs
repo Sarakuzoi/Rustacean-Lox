@@ -13,7 +13,7 @@ const STACK_MAX: u32 = 256;
 pub struct VM {
     chunk: Chunk,
     ip: usize,
-    stack: Vec<Option<Value>>,
+    stack: Vec<Value>,
 }
 
 // static DEBUG_TRACE_EXECUTION: bool = env::var("DEBUG_TRACE").unwra;
@@ -52,7 +52,7 @@ impl VM {
                 print!("          ");
                 for slot in self.stack.iter() {
                     print!("[ ");
-                    print_value(slot.as_ref());
+                    print_value(Some(slot));
                     print!(" ]");
                 }
                 println!();
@@ -61,15 +61,19 @@ impl VM {
             let instruction =
                 num::FromPrimitive::from_u8(self.read_byte()).expect("Unknown OpCode");
             match instruction {
+                OpCode::OP_CONSTANT | OpCode::OP_CONSTANT_LONG => {
+                    let constant = self.read_constant(instruction);
+                    self.push(constant.expect("Constant was not read properly"));
+                } // _ => todo!(),
+                OpCode::OP_NEGATE => {
+                    let aux = self.pop();
+                    self.push(-aux);
+                }
                 OpCode::OP_RETURN => {
-                    print_value(self.pop().as_ref());
+                    print_value(Some(&self.pop()));
                     println!();
                     return InterpretResult::INTERPRET_OK;
                 }
-                OpCode::OP_CONSTANT | OpCode::OP_CONSTANT_LONG => {
-                    let constant = self.read_constant(instruction);
-                    self.push(constant);
-                } // _ => todo!(),
             }
         }
     }
@@ -118,11 +122,11 @@ impl VM {
         self.chunk.constants.values.get(index).copied()
     }
 
-    pub fn push(&mut self, value: Option<Value>) {
+    pub fn push(&mut self, value: Value) {
         self.stack.push(value);
     }
 
-    pub fn pop(&mut self) -> Option<Value> {
+    pub fn pop(&mut self) -> Value {
         self.stack.pop().unwrap()
     }
 }
