@@ -23,6 +23,7 @@ lazy_static! {
 }
 
 #[allow(non_camel_case_types)]
+#[derive(PartialEq)]
 pub enum InterpretResult {
     INTERPRET_OK,
     INTERPRET_COMPILE_ERROR,

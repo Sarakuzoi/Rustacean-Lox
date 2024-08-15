@@ -1,23 +1,55 @@
-use loxy_ferris::{
-    chunk::{Chunk, OpCode},
-    debug::dissasemble_chunk,
-    virtual_machine::VM,
-};
+use std::{env, process::ExitCode};
 
-fn main() {
-    let mut chunk = Chunk::new();
-    let mut vm = VM::new();
+use linefeed::{Interface, ReadResult};
+use loxy_ferris::virtual_machine::InterpretResult;
 
-    chunk.write_constant(1.2, Some(123));
-    chunk.write_constant(3.4, Some(123));
-    chunk.write(OpCode::OP_ADD as u8, None);
+// use loxy_ferris::virtual_machine::VM;
 
-    chunk.write_constant(5.6, Some(124));
-    chunk.write(OpCode::OP_DIVIDE as u8, None);
+fn main() -> ExitCode {
+    // let mut vm = VM::new();
+    let args = env::args().collect::<Vec<String>>();
+    println!("{:?}", args);
 
-    chunk.write(OpCode::OP_NEGATE as u8, None);
-    chunk.write(OpCode::OP_RETURN as u8, Some(124));
+    // TODO: Lookup exit code for IO error
+    if args.len() == 1 {
+        return repl().unwrap_or_else(|_| ExitCode::from(1));
+    } else if args.len() == 2 {
+        return run_file(&args.get(0).unwrap()).unwrap_or_else(|_| ExitCode::from(1));
+    } else {
+        eprintln!("Usage: loxy-ferris [path]");
+        return ExitCode::from(64);
+    }
+}
 
-    vm.interpret(&chunk);
-    dissasemble_chunk(&chunk, "test chunk");
+fn repl() -> Result<ExitCode, std::io::Error> {
+    let reader = Interface::new("Loxy Ferris")?;
+    reader.set_prompt("> ")?;
+    while let ReadResult::Input(line) = reader.read_line()? {
+        println!("Got input: {line}");
+        interpret(line);
+    }
+    println!("Goodbye!");
+    Ok(ExitCode::from(0))
+}
+
+fn run_file(path: &str) -> Result<ExitCode, std::io::Error> {
+    let source = read_file(path)?;
+    let result = interpret(source);
+
+    if result == InterpretResult::INTERPRET_COMPILE_ERROR {
+        return Ok(ExitCode::from(65));
+    }
+    if result == InterpretResult::INTERPRET_RUNTIME_ERROR {
+        return Ok(ExitCode::from(70));
+    }
+    Ok(ExitCode::from(0))
+}
+
+fn read_file(_path: &str) -> Result<String, std::io::Error> {
+    // TODO: Read file
+    Ok(String::new())
+}
+
+fn interpret(code: String) -> InterpretResult {
+    InterpretResult::INTERPRET_OK
 }
