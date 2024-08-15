@@ -50,6 +50,6 @@ fn read_file(_path: &str) -> Result<String, std::io::Error> {
     Ok(String::new())
 }
 
-fn interpret(code: String) -> InterpretResult {
+fn interpret(_code: String) -> InterpretResult {
     InterpretResult::INTERPRET_OK
 }

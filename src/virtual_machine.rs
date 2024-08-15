@@ -4,6 +4,7 @@ use lazy_static::lazy_static;
 
 use crate::{
     chunk::{Chunk, OpCode},
+    compiler::compile,
     debug::dissasemble_instruction,
     value::{print_value, Value},
 };
@@ -39,10 +40,11 @@ impl VM {
         }
     }
 
-    pub fn interpret(&mut self, chunk: &Chunk) -> InterpretResult {
-        self.chunk = chunk.clone();
+    pub fn interpret(&mut self, source: String) -> InterpretResult {
+        // self.chunk = chun.clone();
         // self.ip = chunk.code.clone();
-        self.run()
+        compile(source);
+        InterpretResult::INTERPRET_OK
     }
 
     pub fn run(&mut self) -> InterpretResult {
