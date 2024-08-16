@@ -78,7 +78,54 @@ impl Scanner {
             return self.make_token(TokenType::EOF);
         }
 
-        return self.error_token("Unexpected character.".into());
+        let c = self.advance();
+
+        return match c {
+            '(' => self.make_token(TokenType::LEFT_PAREN),
+            ')' => self.make_token(TokenType::RIGHT_PAREN),
+            '{' => self.make_token(TokenType::LEFT_BRACE),
+            '}' => self.make_token(TokenType::RIGHT_BRACE),
+            ';' => self.make_token(TokenType::SEMICOLON),
+            ',' => self.make_token(TokenType::COMMA),
+            '.' => self.make_token(TokenType::DOT),
+            '-' => self.make_token(TokenType::MINUS),
+            '+' => self.make_token(TokenType::PLUS),
+            '/' => self.make_token(TokenType::SLASH),
+            '*' => self.make_token(TokenType::STAR),
+            '!' => {
+                let aux = self.matches('=');
+                return self.make_token(if aux {
+                    TokenType::BANG_EQUAL
+                } else {
+                    TokenType::BANG
+                });
+            }
+            '=' => {
+                let aux = self.matches('=');
+                return self.make_token(if aux {
+                    TokenType::EQUAL_EQUAL
+                } else {
+                    TokenType::EQUAL
+                });
+            }
+            '>' => {
+                let aux = self.matches('=');
+                return self.make_token(if aux {
+                    TokenType::GREATER_EQUAL
+                } else {
+                    TokenType::GREATER
+                });
+            }
+            '<' => {
+                let aux = self.matches('=');
+                return self.make_token(if aux {
+                    TokenType::LESS_EQUAL
+                } else {
+                    TokenType::LESS
+                });
+            }
+            _ => self.error_token("Unexpected character.".into()),
+        };
     }
 
     fn is_at_end(&self) -> bool {
@@ -95,6 +142,22 @@ impl Scanner {
             lexeme: aux.iter().collect::<String>(),
             line: self.line,
         }
+    }
+
+    fn advance(&mut self) -> char {
+        self.current += 1;
+        *self.source.get(self.current).unwrap()
+    }
+
+    fn matches(&mut self, expected: char) -> bool {
+        if self.is_at_end() {
+            return false;
+        }
+        if self.source.get(self.current).unwrap() != &expected {
+            return false;
+        }
+        self.current += 1;
+        true
     }
 
     fn error_token(&self, message: String) -> Token {
