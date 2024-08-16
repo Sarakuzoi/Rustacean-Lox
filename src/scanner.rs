@@ -72,6 +72,7 @@ impl Scanner {
     }
 
     pub fn scan_token(&mut self) -> Token {
+        self.skip_whitespace();
         self.start = self.current;
 
         if self.is_at_end() {
@@ -160,11 +161,46 @@ impl Scanner {
         true
     }
 
+    fn peek(&self) -> Option<&char> {
+        self.source.get(self.current)
+    }
+
+    fn peek_next(&self) -> Option<&char> {
+        self.source.get(self.current + 1)
+    }
+
     fn error_token(&self, message: String) -> Token {
         Token {
             r#type: TokenType::ERROR,
             lexeme: message,
             line: self.line,
+        }
+    }
+
+    fn skip_whitespace(&mut self) {
+        loop {
+            let c = self.peek();
+            if c.is_none() {
+                return;
+            }
+            match c.unwrap() {
+                ' ' | '\r' | '\t' => {
+                    self.advance();
+                }
+                '\n' => {
+                    self.line += 1;
+                }
+                '/' => {
+                    if self.peek_next() == Some(&'/') {
+                        while self.peek() != Some(&'\n') && !self.is_at_end() {
+                            self.advance();
+                        }
+                    } else {
+                        return;
+                    }
+                }
+                _ => (),
+            }
         }
     }
 }
