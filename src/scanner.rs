@@ -81,6 +81,10 @@ impl Scanner {
 
         let c = self.advance();
 
+        if c.is_digit(10) {
+            return self.number();
+        }
+
         return match c {
             '(' => self.make_token(TokenType::LEFT_PAREN),
             ')' => self.make_token(TokenType::RIGHT_PAREN),
@@ -125,8 +129,45 @@ impl Scanner {
                     TokenType::LESS
                 });
             }
+            '"' => self.string(),
             _ => self.error_token("Unexpected character.".into()),
         };
+    }
+
+    fn string(&mut self) -> Token {
+        while self.peek() != Some(&'"') && !self.is_at_end() {
+            if self.peek() == Some(&'\n') {
+                self.line += 1;
+            }
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            return self.error_token("Unterminated string.".into());
+        };
+
+        // Closing quote
+        self.advance();
+        self.make_token(TokenType::STRING)
+    }
+
+    fn number(&mut self) -> Token {
+        while self.peek().is_some() && self.peek().unwrap().is_digit(10) {
+            self.advance();
+        }
+
+        if self.peek() == Some(&'.')
+            && self.peek_next().is_some()
+            && self.peek_next().unwrap().is_digit(10)
+        {
+            self.advance();
+
+            while self.peek().is_some() && self.peek().unwrap().is_digit(10) {
+                self.advance();
+            }
+        }
+
+        self.make_token(TokenType::NUMBER)
     }
 
     fn is_at_end(&self) -> bool {
