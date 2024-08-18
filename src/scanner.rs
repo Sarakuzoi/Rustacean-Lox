@@ -226,6 +226,59 @@ impl Scanner {
     }
 
     fn identifier_type(&self) -> TokenType {
+        match self.source.get(self.start).unwrap() {
+            'a' => self.check_keyword(1, 2, "nd", TokenType::AND),
+            'c' => self.check_keyword(1, 4, "lass", TokenType::CLASS),
+            'e' => self.check_keyword(1, 3, "lse", TokenType::ELSE),
+            'i' => self.check_keyword(1, 1, "f", TokenType::IF),
+            'n' => self.check_keyword(1, 2, "il", TokenType::NIL),
+            'o' => self.check_keyword(1, 1, "r", TokenType::OR),
+            'p' => self.check_keyword(1, 4, "rint", TokenType::PRINT),
+            'r' => self.check_keyword(1, 5, "eturn", TokenType::RETURN),
+            's' => self.check_keyword(1, 4, "uper", TokenType::SUPER),
+            'v' => self.check_keyword(1, 2, "ar", TokenType::VAR),
+            'w' => self.check_keyword(1, 4, "hile", TokenType::WHILE),
+            'f' => {
+                if self.current - self.start > 1 {
+                    match self.source.get(self.start + 1).unwrap() {
+                        'a' => return self.check_keyword(2, 3, "lse", TokenType::FALSE),
+                        'o' => return self.check_keyword(2, 1, "r", TokenType::FOR),
+                        'u' => return self.check_keyword(2, 1, "n", TokenType::FUN),
+                        _ => return TokenType::IDENTIFIER,
+                    }
+                }
+                TokenType::IDENTIFIER
+            }
+            't' => {
+                if self.current - self.start > 1 {
+                    match self.source.get(self.start + 1).unwrap() {
+                        'h' => return self.check_keyword(2, 2, "is", TokenType::THIS),
+                        'r' => return self.check_keyword(2, 2, "ue", TokenType::TRUE),
+                        _ => return TokenType::IDENTIFIER,
+                    }
+                }
+                TokenType::IDENTIFIER
+            }
+
+            _ => TokenType::IDENTIFIER,
+        }
+    }
+
+    fn check_keyword(
+        &self,
+        start: usize,
+        length: usize,
+        rest: &str,
+        toke_type: TokenType,
+    ) -> TokenType {
+        if self.current - self.start == start + length
+            && &self.source[(self.start + start)..(self.start + self.start + length)]
+                .iter()
+                .collect::<String>()
+                == rest
+        {
+            return toke_type;
+        }
         TokenType::IDENTIFIER
     }
 
