@@ -81,6 +81,9 @@ impl Scanner {
 
         let c = self.advance();
 
+        if c.is_ascii_alphabetic() || c == '_' {
+            return self.identifier();
+        }
         if c.is_digit(10) {
             return self.number();
         }
@@ -170,6 +173,18 @@ impl Scanner {
         self.make_token(TokenType::NUMBER)
     }
 
+    fn identifier(&mut self) -> Token {
+        while let Some(x) = self.peek() {
+            if x.is_ascii_alphabetic() || x == &'_' || x.is_digit(10) {
+                self.advance();
+            } else {
+                break;
+            }
+        }
+        let identifier_type = self.identifier_type();
+        self.make_token(identifier_type)
+    }
+
     fn is_at_end(&self) -> bool {
         self.source.get(self.current).is_none()
     }
@@ -208,6 +223,10 @@ impl Scanner {
 
     fn peek_next(&self) -> Option<&char> {
         self.source.get(self.current + 1)
+    }
+
+    fn identifier_type(&self) -> TokenType {
+        TokenType::IDENTIFIER
     }
 
     fn error_token(&self, message: String) -> Token {
