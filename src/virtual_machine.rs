@@ -43,8 +43,14 @@ impl VM {
     pub fn interpret(&mut self, source: String) -> InterpretResult {
         // self.chunk = chun.clone();
         // self.ip = chunk.code.clone();
-        compile(source);
-        InterpretResult::INTERPRET_OK
+        let chunk = Chunk::new();
+
+        if !compile(source, &chunk) {
+            InterpretResult::INTERPRET_COMPILE_ERROR;
+        }
+
+        self.chunk = chunk;
+        self.run()
     }
 
     pub fn run(&mut self) -> InterpretResult {

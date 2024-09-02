@@ -1,7 +1,7 @@
-use std::{env, process::ExitCode};
+use std::{env, os::fd::IntoRawFd, process::ExitCode};
 
 use linefeed::{Interface, ReadResult};
-use loxy_ferris::virtual_machine::InterpretResult;
+use loxy_ferris::{chunk::Chunk, compiler::compile, virtual_machine::InterpretResult};
 
 // use loxy_ferris::virtual_machine::VM;
 

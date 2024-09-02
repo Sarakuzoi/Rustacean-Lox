@@ -201,7 +201,7 @@ impl Scanner {
         }
     }
 
-    fn advance(&mut self) -> char {
+    pub fn advance(&mut self) -> char {
         self.current += 1;
         *self.source.get(self.current).unwrap()
     }
