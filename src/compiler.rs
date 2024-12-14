@@ -1,27 +1,103 @@
 use crate::{
     chunk::Chunk,
-    scanner::{Scanner, TokenType},
+    scanner::{Scanner, Token, TokenType},
 };
 
-pub fn compile(source: String, chunk: &Chunk) -> bool {
-    let mut scanner = Scanner::init(source);
-    scanner.advance();
-    scanner.expression();
-    scanner.consume(TokenType::EOF, "Expect end of expression.");
-    // let mut line = 0;
-    // loop {
-    //     let token = scanner.scan_token();
-    //     if token.line != line {
-    //         print!("{:4} ", token.line);
-    //         line = token.line;
-    //     } else {
-    //         print!("   | ")
-    //     }
-    //     // printf("%2d '%.*s'\n", token.type, token.length, token.start);
-    //     print!("{:?} {}", token.r#type, token.lexeme);
+pub struct Compiler {
+    scanner: Scanner,
+    parser: Parser,
+}
 
-    //     if token.r#type == TokenType::EOF {
-    //         break;
-    //     }
-    // }
+#[derive(Default)]
+struct Parser {
+    current: Token,
+    previous: Token,
+    had_error: bool,
+    panic_mode: bool,
+}
+
+impl Compiler {
+    pub fn new() -> Self {
+        Compiler {
+            scanner: Scanner::init(String::new()),
+            parser: Parser::default(),
+        }
+    }
+
+    pub fn compile(&mut self, source: String, _chunk: &Chunk) -> bool {
+        self.scanner = Scanner::init(source);
+        self.advance();
+        self.expression();
+        self.consume(TokenType::EOF, "Expect end of expression.");
+        // let mut line = 0;
+        // loop {
+        //     let token = scanner.scan_token();
+        //     if token.line != line {
+        //         print!("{:4} ", token.line);
+        //         line = token.line;
+        //     } else {
+        //         print!("   | ")
+        //     }
+        //     // printf("%2d '%.*s'\n", token.type, token.length, token.start);
+        //     print!("{:?} {}", token.r#type, token.lexeme);
+
+        //     if token.r#type == TokenType::EOF {
+        //         break;
+        //     }
+        // }
+        !self.parser.had_error
+    }
+
+    fn expression(&mut self) {
+        todo!();
+    }
+
+    fn consume(&mut self, r#type: TokenType, message: &str) {
+        if self.parser.current.r#type == r#type {
+            self.advance();
+            return;
+        }
+
+        self.error_at_current(message.to_string());
+    }
+
+    fn advance(&mut self) {
+        self.parser.previous = self.parser.current.clone();
+
+        loop {
+            self.parser.current = self.scanner.scan_token();
+            if self.parser.current.r#type != TokenType::ERROR {
+                break;
+            }
+            self.error_at_current(self.parser.current.lexeme.clone());
+        }
+    }
+
+    fn error_at_current(&mut self, message: String) {
+        self.error_at(&self.parser.current.clone(), message);
+    }
+
+    fn error(&mut self, message: String) {
+        self.error_at(&self.parser.previous.clone(), message);
+    }
+
+    fn error_at(&mut self, token: &Token, message: String) {
+        if self.parser.panic_mode {
+            return;
+        }
+
+        self.parser.panic_mode = true;
+        eprint!("[line {}] Error", token.line);
+
+        if token.r#type == TokenType::EOF {
+            eprint!(" at end");
+        } else if token.r#type == TokenType::ERROR {
+            // Nothing
+        } else {
+            eprint!(" at '{}'", token.lexeme);
+        }
+
+        eprintln!(": {}", message);
+        self.parser.had_error = true;
+    }
 }

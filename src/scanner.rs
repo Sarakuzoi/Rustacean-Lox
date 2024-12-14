@@ -5,6 +5,7 @@ pub struct Scanner {
     line: usize,
 }
 
+#[derive(Default, Clone)]
 pub struct Token {
     pub r#type: TokenType,
     pub lexeme: String,
@@ -12,7 +13,7 @@ pub struct Token {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, PartialEq)]
+#[derive(Default, Debug, PartialEq, Clone, Copy)]
 pub enum TokenType {
     // Single-character tokens.
     LEFT_PAREN,
@@ -58,6 +59,7 @@ pub enum TokenType {
     WHILE,
 
     ERROR,
+    #[default]
     EOF,
 }
 

@@ -4,7 +4,7 @@ use lazy_static::lazy_static;
 
 use crate::{
     chunk::{Chunk, OpCode},
-    compiler::compile,
+    compiler::Compiler,
     debug::dissasemble_instruction,
     value::{print_value, Value},
 };
@@ -44,8 +44,9 @@ impl VM {
         // self.chunk = chun.clone();
         // self.ip = chunk.code.clone();
         let chunk = Chunk::new();
+        let mut compiler = Compiler::new();
 
-        if !compile(source, &chunk) {
+        if !compiler.compile(source, &chunk) {
             InterpretResult::INTERPRET_COMPILE_ERROR;
         }
 
