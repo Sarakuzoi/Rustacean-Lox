@@ -1,11 +1,12 @@
 use crate::{
-    chunk::Chunk,
+    chunk::{Chunk, OpCode},
     scanner::{Scanner, Token, TokenType},
 };
 
 pub struct Compiler {
     scanner: Scanner,
     parser: Parser,
+    compiling_chunk: Chunk,
 }
 
 #[derive(Default)]
@@ -21,11 +22,13 @@ impl Compiler {
         Compiler {
             scanner: Scanner::init(String::new()),
             parser: Parser::default(),
+            compiling_chunk: Chunk::new(),
         }
     }
 
-    pub fn compile(&mut self, source: String, _chunk: &Chunk) -> bool {
+    pub fn compile(&mut self, source: String, chunk: &Chunk) -> bool {
         self.scanner = Scanner::init(source);
+        self.compiling_chunk = chunk.clone();
         self.advance();
         self.expression();
         self.consume(TokenType::EOF, "Expect end of expression.");
@@ -45,20 +48,12 @@ impl Compiler {
         //         break;
         //     }
         // }
+        self.end_compiler();
         !self.parser.had_error
     }
 
     fn expression(&mut self) {
         todo!();
-    }
-
-    fn consume(&mut self, r#type: TokenType, message: &str) {
-        if self.parser.current.r#type == r#type {
-            self.advance();
-            return;
-        }
-
-        self.error_at_current(message.to_string());
     }
 
     fn advance(&mut self) {
@@ -71,6 +66,33 @@ impl Compiler {
             }
             self.error_at_current(self.parser.current.lexeme.clone());
         }
+    }
+
+    fn consume(&mut self, r#type: TokenType, message: &str) {
+        if self.parser.current.r#type == r#type {
+            self.advance();
+            return;
+        }
+
+        self.error_at_current(message.to_string());
+    }
+
+    fn emit_byte(&mut self, byte: u8) {
+        self.compiling_chunk
+            .write(byte, Some(self.parser.previous.line));
+    }
+
+    fn emit_bytes(&mut self, byte1: u8, byte2: u8) {
+        self.emit_byte(byte1);
+        self.emit_byte(byte2);
+    }
+
+    fn end_compiler(&mut self) {
+        self.emit_return();
+    }
+
+    fn emit_return(&mut self) {
+        self.emit_byte(OpCode::OP_RETURN as u8);
     }
 
     fn error_at_current(&mut self, message: String) {
