@@ -1,6 +1,7 @@
 use crate::{
     chunk::{Chunk, OpCode},
     scanner::{Scanner, Token, TokenType},
+    value::Value,
 };
 
 pub struct Compiler {
@@ -87,12 +88,40 @@ impl Compiler {
         self.emit_byte(byte2);
     }
 
+    fn emit_return(&mut self) {
+        self.emit_byte(OpCode::OP_RETURN as u8);
+    }
+
+    fn make_constant(&mut self, value: Value) -> usize {
+        let constant = self.compiling_chunk.add_constant(value);
+        if constant <= 0xff {
+            self.emit_bytes(OpCode::OP_CONSTANT as u8, constant as u8);
+        } else {
+            self.emit_bytes(OpCode::OP_CONSTANT_LONG as u8, constant as u8);
+            self.emit_byte((constant >> 8) as u8);
+            self.emit_byte((constant >> 16) as u8);
+        }
+        constant
+    }
+
+    fn emit_constant(&mut self, value: Value) {
+        let constant = self.make_constant(value);
+        if constant <= 0xff {
+            self.emit_bytes(OpCode::OP_CONSTANT as u8, constant as u8);
+        } else {
+            self.emit_bytes(OpCode::OP_CONSTANT_LONG as u8, constant as u8);
+            self.emit_byte((constant >> 8) as u8);
+            self.emit_byte((constant >> 16) as u8);
+        }
+    }
+
     fn end_compiler(&mut self) {
         self.emit_return();
     }
 
-    fn emit_return(&mut self) {
-        self.emit_byte(OpCode::OP_RETURN as u8);
+    fn number(&mut self) {
+        let value = self.parser.previous.lexeme.parse::<f64>().unwrap();
+        self.emit_constant(value);
     }
 
     fn error_at_current(&mut self, message: String) {
